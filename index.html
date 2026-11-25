@@ -148,7 +148,8 @@ let visible=reports.filter(x=>!filter||x.date===filter);
 $('adminReports').innerHTML=visible.length?visible.map(x=>'<div class="person" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(x.name)+'</b><span class="status '+x.status+'">'+statusLabel(x.status)+'</span></div><small class="muted">'+x.date+' • '+dayOf(x.date)+'</small>'+(x.status==='izin'?'<small>Alasan: '+esc(reasons[x.date+'|'+x.name]||'Belum diisi')+'</small>':'')+(x.photo?'<img src="'+x.photo+'" alt="Foto dokumentasi" style="width:100%;max-width:420px;height:180px;object-fit:cover;border-radius:8px;margin-top:10px">':'')+'</div>').join(''):'<div class="empty">Belum ada dokumentasi pada tanggal ini.</div>';
 $('manageList').innerHTML=members.map(p=>'<div class="person" style="margin:6px 0"><div><b>'+esc(p.name)+'</b><small>'+esc(p.className)+'</small></div><button class="btn danger" onclick="removeMember(\''+escq(p.name)+'\')">Hapus</button></div>').join('');
 }
-function setStatus(name,s){draft[name]=s;if(s!=='izin')draftReasons[name]='';let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members.map(p=>personHTML(p,d,true)).join('')}\nfunction setReason(name,value){draftReasons[name]=value}
+function setStatus(name,s){draft[name]=s;if(s!=='izin')draftReasons[name]='';let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members.map(p=>personHTML(p,d,true)).join('')}
+function setReason(name,value){draftReasons[name]=value}
 function markAll(s){members.forEach(p=>draft[p.name]=s);let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members.map(p=>personHTML(p,d,true)).join('')}
 function saveAttendance(){
 let d=$('attDate').value||isoNow();
