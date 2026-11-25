@@ -32,19 +32,15 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 <div class="section-head"><div><h2>Absensi Kehadiran Anggota T2</h2><div class="muted">Semua 29 anggota tercantum setiap hari. Waktu pencatatan direkam otomatis saat absensi disimpan.</div></div></div>
 <div class="card"><div class="formrow"><div class="formgroup"><label>Tanggal absensi</label><input class="field" type="date" id="attDate"></div><div class="formgroup"><label>Hari</label><input class="field" id="dayName" disabled></div><button class="btn" onclick="markAll('hadir')">Tandai Semua Hadir</button></div><div class="section-head"><h2>Daftar Anggota</h2><span class="muted" id="attendanceCount"></span></div><div id="attendanceRoster" class="roster"></div>
 <div class="card" style="margin-top:18px"><h3>Dokumentasi Kehadiran (Opsional)</h3><p class="muted">Unggah satu foto dokumentasi untuk absensi pada tanggal tersebut.</p>
-<div class="formrow"><div class="formgroup"><label>Anggota yang didokumentasikan</label><select class="field" id="photoMember"></select></div></div>
-<div class="formrow" style="margin-top:12px">
-<div class="formgroup"><label>Foto BEFORE (sebelum kegiatan)</label><input class="field" type="file" id="photoBefore" accept="image/*" capture="environment"><img id="beforePreview" class="hidden" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px"></div>
-<div class="formgroup"><label>Foto AFTER (sesudah kegiatan)</label><input class="field" type="file" id="photoAfter" accept="image/*" capture="environment"><img id="afterPreview" class="hidden" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px"></div>
-</div><p class="muted" style="font-size:12px">Foto akan disimpan pada perangkat ini di versi demo. Penyimpanan online lintas perangkat memerlukan Firebase Storage.</p></div>
+<div class="formrow" style="margin-top:12px"><div class="formgroup"><label>Foto dokumentasi (cukup 1 foto)</label><input class="field" type="file" id="attendancePhoto" accept="image/*" capture="environment"><img id="photoPreview" class="hidden" style="width:100%;max-width:420px;max-height:240px;object-fit:cover;border-radius:12px;margin-top:8px"></div></div><p class="muted" style="font-size:12px">Foto akan disimpan pada perangkat ini di versi demo. Penyimpanan online lintas perangkat memerlukan Firebase Storage.</p></div>
 <div style="display:flex;justify-content:flex-end;margin-top:17px"><button class="btn primary" onclick="saveAttendance()">Simpan Absensi</button></div></div>
 </section>
 <section id="history" class="page hidden"><div class="section-head"><div><h2>Riwayat Absensi</h2><button class="btn" onclick="exportCSV()">Unduh CSV</button></div></div><div class="card"><div class="table-wrap"><table><thead><tr><th>Tanggal Kehadiran</th><th>Waktu Dicatat</th><th>Nama</th><th>Hari</th><th>Status</th><th>Alasan Izin</th></tr></thead><tbody id="historyRows"></tbody></table></div><div id="historyEmpty" class="empty hidden">Belum ada data absensi tersimpan.</div></div></section>
 <section id="settings" class="page hidden"><div class="section-head"><div><h2>Pengaturan Anggota</h2><div class="muted">Tambah atau hapus anggota beserta kelasnya.</div></div></div><div class="card"><form id="addForm" class="formrow"><div class="formgroup"><label>Nama anggota</label><input class="field" id="newName" placeholder="Nama anggota" required></div><div class="formgroup"><label>Kelas</label><input class="field" id="newClass" placeholder="Contoh: XI TKJ 1" required></div><button class="btn primary">Tambah Anggota</button></form></div><div id="manageList" class="card"></div><p class="muted" style="font-size:12px;line-height:1.6">Catatan: versi awal menyimpan data pada browser/perangkat ini (local storage). Data belum tersinkron otomatis ke perangkat lain. Hubungkan Firebase untuk penggunaan bersama seluruh anggota.</p></section>
 <section id="admin" class="page hidden">
-<div class="section-head"><div><h2>Dashboard Admin</h2><div class="muted">Pantau absensi, dokumentasi Before–After, dan status laporan.</div></div><button class="btn" onclick="exportCSV()">Unduh CSV</button></div>
+<div class="section-head"><div><h2>Dashboard Admin</h2><div class="muted">Pantau absensi, alasan izin, dan foto dokumentasi.</div></div><button class="btn" onclick="exportCSV()">Unduh CSV</button></div>
 <div class="stats"><div class="stat"><small>Total laporan</small><strong id="adminTotal">0</strong></div><div class="stat"><small>Dokumentasi lengkap</small><strong id="photoComplete">0</strong></div><div class="stat"><small>Anggota terdaftar</small><strong id="adminMembers">0</strong></div></div>
-<div class="card"><div class="section-head"><h2>Dokumentasi Piket</h2><input class="field" type="date" id="adminDate"></div><div id="adminReports" class="roster"></div></div>
+<div class="card"><div class="section-head"><h2>Dokumentasi Kehadiran</h2><input class="field" type="date" id="adminDate"></div><div id="adminReports" class="roster"></div></div>
 
 </section>
 </main><div class="footer">© 2026 MB LODAYA ANGKATAN 19 • SISTEM ABSENSI KEHADIRAN</div>
@@ -136,8 +132,9 @@ function markAll(s){members.forEach(p=>draft[p.name]=s);let d=$('attDate').value
 function saveAttendance(){
 let d=$('attDate').value||isoNow();
 if(!members.length){alert('Belum ada anggota terdaftar.');return}
+for(const p of members){if((draft[p.name]||'belum')==='izin'&&!(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim()){alert('Alasan izin untuk '+p.name+' wajib diisi.');return}}
 records[d]={...(records[d]||{})};
-members.forEach(p=>{let status=draft[p.name]||'belum';if(status==='izin'){let reason=(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim();if(!reason){alert('Alasan izin untuk '+p.name+' wajib diisi.');return}reasons[d+'|'+p.name]=reason}else delete reasons[d+'|'+p.name];records[d][p.name]=status;attendanceMeta[d+'|'+p.name]=new Date().toISOString()});\nif(photoDraft)photoRecords[d]=photoDraft;
+members.forEach(p=>{let status=draft[p.name]||'belum';if(status==='izin'){let reason=(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim();if(reason)reasons[d+'|'+p.name]=reason}else delete reasons[d+'|'+p.name];records[d][p.name]=status;attendanceMeta[d+'|'+p.name]=new Date().toISOString()});\nif(photoDraft)photoRecords[d]=photoDraft;
 persist();alert('Absensi seluruh anggota T2 berhasil disimpan pada perangkat ini.');render();
 }
 $('attDate').value=isoNow();
