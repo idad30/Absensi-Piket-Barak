@@ -142,7 +142,7 @@ const alpa2=tingkat2.filter(x=>x.status==='alpa');
 const hadir3=tingkat3.filter(x=>x.status==='hadir');
 const tidak3=tingkat3.filter(x=>x.status==='sakit'||x.status==='izin');
 const alpa3=tingkat3.filter(x=>x.status==='alpa');
-const fmt=(arr,reason=false)=>arr.length?arr.length+' anggota':'';
+const fmt=(arr,reason=false)=>arr.length?arr.map((x,i)=>(i+1)+'. '+x.name+' : '+x.className+(reason&&x.reason?' ('+(x.status==='sakit'?'Sakit: ':'Izin: ')+x.reason+')':reason&&x.status==='sakit'?' (Sakit)': '')).join('\n'):'';
 const lines=['Assalamualaikum mba aa, izin laporan absensi latihan, '+dateText+'.','','*TINGKAT 1*','','*TINGKAT 2*','','*HADIR:*',fmt(hadir2),'','*TIDAK HADIR:*',fmt(tidak2,true),'','*TANPA KETERANGAN:*',fmt(alpa2),'','*TINGKAT 3*','','*HADIR:*',fmt(hadir3),'','*TIDAK HADIR:*',fmt(tidak3,true),'','*TANPA KETERANGAN:*',fmt(alpa3),'','Wassalamualaikum warahmatullahi wabarakatuh.'];
 $('reportOutput').value=lines.join('\n').replace(/\n{3,}/g,'\n\n');
 }
