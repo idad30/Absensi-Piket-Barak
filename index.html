@@ -111,9 +111,9 @@ const list=members.map(p=>({name:p.name,className:p.className,status:records[d]?
 const hadir=list.filter(x=>x.status==='hadir');
 const tidak=list.filter(x=>x.status==='sakit'||x.status==='izin');
 const alpa=list.filter(x=>x.status==='alpa');
-const fmt=(arr,reason=false)=>arr.length?arr.map((x,i)=>(i+1)+'. '+x.name+' : '+x.className+(reason&&x.reason?' ('+(x.status==='sakit'?'Sakit: ':'Izin: ')+x.reason+')':reason&&x.status==='sakit'?' (Sakit)': '')).join('\\n'):'';
+const fmt=(arr,reason=false)=>arr.length?arr.map((x,i)=>(i+1)+'. '+x.name+' : '+x.className+(reason&&x.reason?' ('+(x.status==='sakit'?'Sakit: ':'Izin: ')+x.reason+')':reason&&x.status==='sakit'?' (Sakit)': '')).join('\n'):'';
 const lines=['Assalamualaikum mba aa, izin laporan absensi latihan Tim Cosmic, '+dateText+'.','','*TINGKAT 1*','','*TINGKAT 2*','','*HADIR:*',fmt(hadir),'','*TIDAK HADIR:*',fmt(tidak,true),'','*TANPA KETERANGAN:*',fmt(alpa),'','*TINGKAT 3*','','Wassalamualaikum warahmatullahi wabarakatuh.'];
-$('reportOutput').value=lines.join('\\n').replace(/\\n{3,}/g,'\\n\\n');
+$('reportOutput').value=lines.join('\n').replace(/\n{3,}/g,'\n\n');
 }
 async function copyReport(){
 generateReport();
