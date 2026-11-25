@@ -132,7 +132,7 @@ function dayOf(date){return days[new Date(date+'T12:00:00').getDay()]}
 function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(page).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));render()}
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 function membersByLevel(level){return members.filter(p=>String(p.className||'').startsWith(level+' '))}
-function switchMemberTab(area,level){if(area==='attendance')activeAttendanceLevel=level;else activeManageLevel=level;render()}
+function switchMemberTab(area,level){const savedDraft={...draft},savedReasons={...draftReasons};if(area==='attendance')activeAttendanceLevel=level;else activeManageLevel=level;render();draft=savedDraft;draftReasons=savedReasons;let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=membersByLevel(activeAttendanceLevel).map(p=>personHTML(p,d,true)).join('')}
 function updateMemberTabs(){[['attendanceT2',activeAttendanceLevel==='XI'],['attendanceT3',activeAttendanceLevel==='XII'],['manageT2',activeManageLevel==='XI'],['manageT3',activeManageLevel==='XII']].forEach(([id,on])=>$(id).classList.toggle('active',on))}
 function statusOf(date,name){return records[date]?.[name]||'belum'}
 function statusLabel(s){return ({hadir:'HADIR',sakit:'SAKIT',izin:'IZIN',alpa:'TANPA KETERANGAN',belum:'BELUM ABSEN'})[s]||s.toUpperCase()}
