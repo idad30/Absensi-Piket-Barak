@@ -59,6 +59,7 @@ const defaults=[
 ];
 const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 let schedule=JSON.parse(localStorage.getItem('lodayaSchedule')||'null')||defaults;
+if(localStorage.getItem('lodayaScheduleVersion')!=='2'){schedule=defaults;localStorage.setItem('lodayaScheduleVersion','2');localStorage.setItem('lodayaSchedule',JSON.stringify(schedule));}
 let records=JSON.parse(localStorage.getItem('lodayaRecords')||'{}');
 let draft={};
 let photoDraft={before:'',after:''};\nlet photoRecords=JSON.parse(localStorage.getItem('lodayaPhotos')||'{}');
