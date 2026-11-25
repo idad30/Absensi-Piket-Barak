@@ -37,7 +37,7 @@ body.app-locked .page,body.app-locked nav,body.app-locked #logoutBtn{display:non
 </section>
 <section id="report" class="page hidden">
 <div class="section-head"><div><h2>Generator Laporan Absensi</h2><div class="muted">Susun laporan siap kirim berdasarkan data absensi pada tanggal yang dipilih.</div></div></div>
-<div class="card"><div class="formrow"><div class="formgroup"><label>Tanggal laporan</label><input class="field" type="date" id="reportDate"></div><button class="btn" onclick="generateReport()">Perbarui Laporan</button><button class="btn primary" onclick="copyReport()">Salin Laporan</button></div>
+<div class="card"><div class="formrow"><div class="formgroup"><label>Tanggal laporan</label><input class="field" type="date" id="reportDate"></div><button class="btn" onclick="generateReport()">Perbarui Laporan</button><button class="btn primary" onclick="copyReport()">Salin Laporan</button><button class="btn danger" onclick="resetReport()">Reset Tampilan</button></div>
 <label style="margin-top:16px">Pratinjau laporan (bisa disalin)</label><textarea id="reportOutput" class="field" rows="20" style="width:100%;resize:vertical;line-height:1.55" readonly></textarea>
 <p class="muted" style="font-size:12px;line-height:1.6">Status HADIR masuk ke bagian HADIR. SAKIT dan IZIN masuk ke TIDAK HADIR beserta keterangan. Status ALPA masuk ke TANPA KETERANGAN. Data anggota Tingkat 1 belum tersedia. Data Tingkat 2 dan Tingkat 3 sudah masuk dalam daftar absensi.</p></div>
 </section>
@@ -134,6 +134,7 @@ function statusLabel(s){return ({hadir:'HADIR',sakit:'SAKIT',izin:'IZIN',alpa:'T
 function personHTML(person,date,editable=false){let name=person.name,st=editable?(draft[name]||statusOf(date,name)):statusOf(date,name),reason=editable?(draftReasons[name]??reasons[date+'|'+name]??''):(reasons[date+'|'+name]||'');return '<div class="person" style="align-items:flex-start"><div class="person-left"><div class="avatar">'+esc(name.charAt(0).toUpperCase())+'</div><div><b>'+esc(name)+'</b><small>'+esc(person.className)+'</small>'+(editable&&st==='izin'?'<input class="field" style="display:block;margin-top:8px;width:min(260px,60vw)" placeholder="Tulis alasan izin..." value="'+esc(reason)+'" oninput="setReason(\''+escq(name)+'\',this.value)">':'')+(!editable&&st==='izin'?'<small>Alasan: '+esc(reason||'Belum diisi')+'</small>':'')+'</div></div>'+(editable?'<div class="actions">'+['hadir','sakit','izin','alpa'].map(s=>'<button class="'+(st===s?'selected':'')+'" onclick="setStatus(\''+escq(name)+'\',\''+s+'\')">'+statusLabel(s)+'</button>').join('')+'</div>':'<span class="status '+(st==='belum'?'':st)+'">'+statusLabel(st)+'</span>')+'</div>'}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function escq(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+function resetReport(){ $('reportOutput').value=''; alert('Tampilan laporan berhasil dikosongkan. Data absensi dan daftar anggota tetap tersimpan.'); }
 function generateReport(){
 const d=$('reportDate').value||isoNow();
 const dateText=new Date(d+'T12:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
