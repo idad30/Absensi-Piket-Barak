@@ -22,7 +22,7 @@ body.app-locked .page,body.app-locked nav,body.app-locked #logoutBtn{display:non
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA ANGKATAN 19</b><small>Sistem Absensi Kehadiran</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="report">Laporan</button><button data-page="settings">Pengaturan</button></nav><button id="logoutBtn" class="btn danger" type="button">Keluar</button></header>
+<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA ANGKATAN 19</b><small>Sistem Absensi Kehadiran</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="report">Laporan</button><button data-page="settings">Pengaturan</button><button id="ownerNav" data-page="owner" class="hidden">Owner</button></nav><button id="logoutBtn" class="btn danger" type="button">Keluar</button></header>
 <main class="app-locked">
 <section id="loginGate" class="card"><div class="eyebrow">AKSES ADMIN</div><h2 style="margin:8px 0 6px">Login Absensi Lodaya 19</h2><p class="muted" style="font-size:13px">Masuk menggunakan akun admin Firebase yang sudah didaftarkan.</p><form id="loginForm"><div style="margin:16px 0"><label>Email admin</label><input class="field" id="loginEmail" type="email" autocomplete="username" placeholder="Email admin" required style="width:100%"></div><div style="margin:16px 0"><label>Password</label><input class="field" id="loginPassword" type="password" autocomplete="current-password" placeholder="Password" required style="width:100%"></div><button class="btn primary" id="loginBtn" type="submit" style="width:100%">Masuk</button><p id="loginError" class="login-error" role="alert"></p></form><p class="login-note">Akses website dibatasi untuk akun yang terdaftar sebagai admin. Jangan bagikan password kepada orang lain.</p></section>
 <section id="dashboard" class="page">
@@ -42,6 +42,11 @@ body.app-locked .page,body.app-locked nav,body.app-locked #logoutBtn{display:non
 <p class="muted" style="font-size:12px;line-height:1.6">Status HADIR masuk ke bagian HADIR. SAKIT dan IZIN masuk ke TIDAK HADIR beserta keterangan. Status ALPA masuk ke TANPA KETERANGAN. Data anggota Tingkat 1 belum tersedia. Data Tingkat 2 dan Tingkat 3 sudah masuk dalam daftar absensi.</p></div>
 </section>
 <section id="settings" class="page hidden"><div class="section-head"><div><h2>Pengaturan Anggota</h2><div class="muted">Tambah atau hapus anggota beserta kelasnya.</div></div></div><div class="card"><form id="addForm" class="formrow"><div class="formgroup"><label>Nama anggota</label><input class="field" id="newName" placeholder="Nama anggota" required></div><div class="formgroup"><label>Kelas</label><input class="field" id="newClass" placeholder="Contoh: XI TKJ 1" required></div><button class="btn primary">Tambah Anggota</button></form></div><div class="subtabs"><button type="button" id="manageT2" class="active" onclick='switchMemberTab("manage","XI")'>TINGKAT 2 (T2)</button><button type="button" id="manageT3" onclick='switchMemberTab("manage","XII")'>TINGKAT 3 (T3)</button></div><div id="manageList" class="card"></div><p class="muted" style="font-size:12px;line-height:1.6">Catatan: versi awal menyimpan data pada browser/perangkat ini (local storage). Data belum tersinkron otomatis ke perangkat lain. Hubungkan Firebase untuk penggunaan bersama seluruh anggota.</p></section>
+<section id="owner" class="page hidden">
+<div class="section-head"><div><h2>Panel Owner</h2><div class="muted">Kelola akun admin website Absensi Lodaya 19.</div></div></div>
+<div class="card"><h3 style="margin-top:0">Buat akun admin baru</h3><form id="createAdminForm" class="formrow"><div class="formgroup"><label>Nama admin</label><input class="field" id="ownerAdminName" placeholder="Nama admin" required></div><div class="formgroup"><label>Email admin</label><input class="field" id="ownerAdminEmail" type="email" placeholder="admin@email.com" required></div><div class="formgroup"><label>Password sementara (minimal 6 karakter)</label><input class="field" id="ownerAdminPassword" type="password" minlength="6" placeholder="Buat password" required></div><button class="btn primary" id="createAdminBtn">Buat Akun Admin</button></form><p id="ownerMessage" class="login-error" role="status" style="margin-top:12px"></p><p class="login-note">Berikan email dan password kepada admin melalui jalur pribadi. Akun yang dicabut aksesnya tetap ada di Firebase Authentication, tetapi tidak dapat masuk ke website.</p></div>
+<div class="card"><div class="section-head"><h3>Daftar akun admin</h3><button class="btn" type="button" onclick="loadAdminList()">Muat Ulang</button></div><div id="ownerAdminList" class="table-wrap"><p class="muted">Memuat daftar admin...</p></div></div>
+</section>
 <section id="admin" class="page hidden">
 <div class="section-head"><div><h2>Dashboard Admin</h2><div class="muted">Pantau absensi, alasan izin, dan foto dokumentasi.</div></div><button class="btn" onclick="exportCSV()">Unduh CSV</button></div>
 <div class="stats"><div class="stat"><small>Total catatan absensi</small><strong id="adminTotal">0</strong></div><div class="stat"><small>Anggota terdaftar</small><strong id="adminMembers">0</strong></div></div>
@@ -57,6 +62,10 @@ const firebaseConfig={apiKey:"AIzaSyB4Rw29rnVNzRkz62LRqJ8U5h8auWvgneU",authDomai
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
+// Auth kedua membuat akun admin tanpa mengganti sesi Owner.
+const secondaryApp=firebase.initializeApp(firebaseConfig,"owner-account-creator");
+const secondaryAuth=secondaryApp.auth();
+let currentRole="";
 // Firestore menjadi penyimpanan utama.
 const initialMembers=[
 {name:'Adnan Fajri Maulana',className:'XI NKPI 1'},
@@ -129,7 +138,7 @@ function formatDate(date){return new Date(date+'T12:00:00').toLocaleDateString('
 function formatRecordedAt(value){if(!value)return '-';return new Date(value).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Jakarta'})+' WIB'}
 function isoNow(){let d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
 function dayOf(date){return days[new Date(date+'T12:00:00').getDay()]}
-function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(page).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));render()}
+function go(page){if(page==='owner'&&currentRole!=='owner')return;document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));$(page).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));if(page==='owner')loadAdminList();else render()}
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 function membersByLevel(level){return members.filter(p=>String(p.className||'').startsWith(level+' '))}
 function switchMemberTab(area,level){const savedDraft={...draft},savedReasons={...draftReasons};if(area==='attendance')activeAttendanceLevel=level;else activeManageLevel=level;render();draft=savedDraft;draftReasons=savedReasons;let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=membersByLevel(activeAttendanceLevel).map(p=>personHTML(p,d,true)).join('')}
@@ -212,17 +221,53 @@ $('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginEr
 $('logoutBtn').addEventListener('click',()=>auth.signOut());
 auth.onAuthStateChanged(async user=>{
  document.querySelector('main').classList.add('app-locked');
- if(!user){$('loginGate').classList.remove('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Masuk';return}
+ if(!user){currentRole='';$('ownerNav').classList.add('hidden');$('loginGate').classList.remove('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Masuk';return}
  try{
+  const ownerSnap=await db.collection('owner').doc(user.uid).get();
   const adminSnap=await db.collection('admin').doc(user.uid).get();
-  if(!adminSnap.exists||adminSnap.data().role!=='admin'){await auth.signOut();$('loginError').textContent='Akun ini tidak memiliki akses admin.';return}
+  currentRole=ownerSnap.exists&&ownerSnap.data().role==='owner'?'owner':(adminSnap.exists&&adminSnap.data().role==='admin'?'admin':'');
+  if(!currentRole){await auth.signOut();$('loginError').textContent='Akun ini tidak memiliki akses admin.';return}
+  $('ownerNav').classList.toggle('hidden',currentRole!=='owner');
   const rosterSnap=await db.collection('members').doc('roster').get();
   if(rosterSnap.exists&&Array.isArray(rosterSnap.data().items))members=rosterSnap.data().items;
   else{members=[...initialMembers,...initialMembersT3];await db.collection('members').doc('roster').set({items:members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}
   records={};reasons={};attendanceMeta={};
   const attendanceSnap=await db.collection('attendance').get();
   attendanceSnap.forEach(doc=>{const data=doc.data()||{};records[doc.id]=data.records||{};Object.entries(data.reasons||{}).forEach(([n,v])=>reasons[doc.id+'|'+n]=v);Object.entries(data.meta||{}).forEach(([n,v])=>attendanceMeta[doc.id+'|'+n]=v)});
-  $('loginGate').classList.add('hidden');document.body.classList.remove('app-locked');$('logoutBtn').style.display='inline-block';$('adminDate').value=isoNow();render();generateReport();
+  
+async function loadAdminList(){
+ if(currentRole!=='owner')return;
+ const target=$('ownerAdminList');target.innerHTML='<p class="muted">Memuat...</p>';
+ try{
+  const snap=await db.collection('admin').get();
+  if(snap.empty){target.innerHTML='<p class="empty">Belum ada akun admin.</p>';return}
+  target.innerHTML='<table><thead><tr><th>Nama</th><th>Email</th><th>Aksi</th></tr></thead><tbody>'+snap.docs.map(doc=>{
+   const d=doc.data()||{},uid=doc.id;
+   return '<tr><td>'+escapeHTML(d.name||'-')+'</td><td>'+escapeHTML(d.email||uid)+'</td><td><button class="btn danger" type="button" onclick="removeAdmin(\''+uid+'\')">Cabut akses</button></td></tr>';
+  }).join('')+'</tbody></table>';
+ }catch(e){target.innerHTML='<p class="login-error">Gagal memuat daftar admin. Periksa Firestore Rules.</p>'}
+}
+function escapeHTML(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+$('createAdminForm').addEventListener('submit',async e=>{
+ e.preventDefault();if(currentRole!=='owner')return;
+ const name=$('ownerAdminName').value.trim(),email=$('ownerAdminEmail').value.trim(),password=$('ownerAdminPassword').value;
+ const btn=$('createAdminBtn');$('ownerMessage').textContent='';btn.disabled=true;btn.textContent='Membuat akun...';
+ try{
+  const credential=await secondaryAuth.createUserWithEmailAndPassword(email,password);
+  await db.collection('admin').doc(credential.user.uid).set({role:'admin',name,email,createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:auth.currentUser.uid});
+  await secondaryAuth.signOut();$('createAdminForm').reset();$('ownerMessage').textContent='Akun admin berhasil dibuat. UID: '+credential.user.uid;await loadAdminList();
+ }catch(error){
+  let message=error.code==='auth/email-already-in-use'?'Email sudah digunakan.':error.code==='auth/weak-password'?'Password minimal 6 karakter.':error.code==='auth/invalid-email'?'Format email tidak valid.':error.code==='permission-denied'?'Firestore menolak penyimpanan hak akses. Periksa Rules.':(error.message||'Terjadi kesalahan.');
+  $('ownerMessage').textContent='Gagal membuat akun: '+message;
+ }finally{btn.disabled=false;btn.textContent='Buat Akun Admin'}
+});
+async function removeAdmin(uid){
+ if(currentRole!=='owner'||!confirm('Cabut akses admin akun ini? Akun Firebase tetap ada, tetapi tidak bisa membuka dashboard.'))return;
+ try{await db.collection('admin').doc(uid).delete();await loadAdminList();$('ownerMessage').textContent='Akses admin berhasil dicabut.'}
+ catch(e){$('ownerMessage').textContent='Gagal mencabut akses. Periksa Firestore Rules.'}
+}
+
+$('loginGate').classList.add('hidden');document.body.classList.remove('app-locked');$('logoutBtn').style.display='inline-block';$('adminDate').value=isoNow();render();generateReport();
  }catch(error){console.error(error);$('loginError').textContent='Gagal memuat data Firebase: '+error.message;await auth.signOut()}
 });
 </script></body></html>
