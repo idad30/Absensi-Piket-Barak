@@ -21,7 +21,7 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA 19</b><small>Barak Duty Attendance</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="schedule">Jadwal</button><button data-page="history">Riwayat</button><button data-page="settings">Pengaturan</button><button data-page="admin">Admin</button></nav></header>
+<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA 19</b><small>Barak Duty Attendance</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="schedule">Jadwal</button><button data-page="history">Riwayat</button><button data-page="settings">Pengaturan</button></nav></header>
 <main>
 <section id="dashboard" class="page">
 <div class="hero"><div class="eyebrow">MB LODAYA 19 • SISTEM KEDISIPLINAN</div><h1>Absensi Piket Barak</h1><p>Catat kehadiran anggota piket, pantau jadwal harian, dan lihat rekap kedisiplinan dalam satu dashboard.</p></div>
@@ -44,23 +44,24 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 <section id="settings" class="page hidden"><div class="section-head"><div><h2>Pengaturan Anggota</h2><div class="muted">Tambah atau hapus anggota dan sesuaikan jadwal.</div></div></div><div class="card"><form id="addForm" class="formrow"><div class="formgroup"><label>Nama anggota</label><input class="field" id="newName" placeholder="Nama anggota" required></div><div class="formgroup"><label>Hari piket</label><select class="field" id="newDay"><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option></select></div><button class="btn primary">Tambah Anggota</button></form></div><div id="manageList" class="card"></div><p class="muted" style="font-size:12px;line-height:1.6">Catatan: versi awal menyimpan data pada browser/perangkat ini (local storage). Data belum tersinkron otomatis ke perangkat lain. Hubungkan Firebase untuk penggunaan bersama seluruh anggota.</p></section>
 <section id="admin" class="page hidden">
 <div class="section-head"><div><h2>Dashboard Admin</h2><div class="muted">Pantau absensi, dokumentasi Before–After, dan status laporan.</div></div><button class="btn" onclick="exportCSV()">Unduh CSV</button></div>
-<div class="stats"><div class="stat"><small>Total laporan</small><strong id="adminTotal">0</strong></div><div class="stat"><small>Dokumentasi lengkap</small><strong id="photoComplete">0</strong></div><div class="stat"><small>Menunggu integrasi WA</small><strong id="waPending">0</strong></div><div class="stat"><small>Anggota terdaftar</small><strong id="adminMembers">0</strong></div></div>
+<div class="stats"><div class="stat"><small>Total laporan</small><strong id="adminTotal">0</strong></div><div class="stat"><small>Dokumentasi lengkap</small><strong id="photoComplete">0</strong></div><div class="stat"><small>Anggota terdaftar</small><strong id="adminMembers">0</strong></div></div>
 <div class="card"><div class="section-head"><h2>Dokumentasi Piket</h2><input class="field" type="date" id="adminDate"></div><div id="adminReports" class="roster"></div></div>
-<div class="card"><h3>Integrasi WhatsApp</h3><p class="muted">Pengiriman otomatis diaktifkan setelah Firebase dan WhatsApp Cloud API dikonfigurasi. Token API disimpan sebagai secret di backend, bukan di browser.</p><div id="waStatus" class="status izin">Belum dikonfigurasi</div></div>
+
 </section>
 </main><div class="footer">© 2026 MB LODAYA 19 • ABSENSI PIKET BARAK</div>
 <script>
 const defaults=[
-{day:'Senin',names:['Agis','Sandra','Kalingga','Bunga','Evan','Jaki']},
-{day:'Selasa',names:['Fajri','Silvi','Wiranto','Rihana','Hafidz','Restu']},
-{day:'Rabu',names:['Teguh','Eka','Idad','Thasya','Putra','Rosiyana']},
-{day:'Kamis',names:['Jupie','Purqon','Khais','Bintang','Muna']},
-{day:'Jumat',names:['Jitan','Nazril','Andin','Hasanah','Ridho']}
+{day:'Senin',names:['Najwa','Hafidz','Fajri','Jitan','Wiranto','Rihana']},
+{day:'Selasa',names:['Agis','Bunga','Sandra','Khais','Kalingga','Dzaky']},
+{day:'Rabu',names:['Ridho','Evan','Nazril','Muna','Silviyah']},
+{day:'Kamis',names:['Jupie','Teguh','Hijrico','Eka','Restu','Hasanah']},
+{day:'Jumat',names:['Rosiyana','Bintang','Putra','Furqon','Andin','Thasya']}
 ];
 const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 let schedule=JSON.parse(localStorage.getItem('lodayaSchedule')||'null')||defaults;
 let records=JSON.parse(localStorage.getItem('lodayaRecords')||'{}');
-let draft={};\nlet photoDraft={before:'',after:''};\nlet photoRecords=JSON.parse(localStorage.getItem('lodayaPhotos')||'{}');
+let draft={};
+let photoDraft={before:'',after:''};\nlet photoRecords=JSON.parse(localStorage.getItem('lodayaPhotos')||'{}');
 const $=id=>document.getElementById(id);
 function persist(){localStorage.setItem('lodayaSchedule',JSON.stringify(schedule));localStorage.setItem('lodayaRecords',JSON.stringify(records));localStorage.setItem('lodayaPhotos',JSON.stringify(photoRecords))}
 function isoNow(){let d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
@@ -76,7 +77,7 @@ let date=$('attDate').value||today,ad=dayOf(date),al=members(ad);$('dayName').va
 $('scheduleList').innerHTML=schedule.map(x=>'<div class="card"><div class="section-head" style="margin:0 0 12px"><h2>'+x.day+'</h2><span class="muted">'+x.names.length+' anggota</span></div><div class="roster">'+x.names.map(n=>'<div class="person"><div class="person-left"><div class="avatar">'+n.charAt(0)+'</div><b>'+esc(n)+'</b></div></div>').join('')+'</div></div>').join('');
 let rows=[];Object.keys(records).sort().reverse().forEach(d=>Object.entries(records[d]).forEach(([n,s])=>rows.push([d,n,dayOf(d),s])));$('historyRows').innerHTML=rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+esc(r[1])+'</td><td>'+r[2]+'</td><td><span class="status '+r[3]+'">'+r[3].toUpperCase()+'</span></td></tr>').join('');$('historyEmpty').classList.toggle('hidden',rows.length>0);
 let reports=[];Object.keys(records).sort().reverse().forEach(d=>Object.entries(records[d]).forEach(([n,s])=>reports.push({date:d,name:n,status:s,photos:photoRecords[d+'|'+n]||{}})));
-$('adminTotal').textContent=reports.length;$('photoComplete').textContent=reports.filter(x=>x.photos.before&&x.photos.after).length;$('waPending').textContent=reports.length;$('adminMembers').textContent=schedule.reduce((a,x)=>a+x.names.length,0);
+$('adminTotal').textContent=reports.length;$('photoComplete').textContent=reports.filter(x=>x.photos.before&&x.photos.after).length;$('adminMembers').textContent=schedule.reduce((a,x)=>a+x.names.length,0);
 let filter=$('adminDate')?.value||'';let visible=reports.filter(x=>!filter||x.date===filter);
 $('adminReports').innerHTML=visible.length?visible.map(x=>'<div class="person" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(x.name)+'</b><span class="status '+x.status+'">'+x.status.toUpperCase()+'</span></div><small class="muted">'+x.date+' • '+dayOf(x.date)+'</small><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">'+(x.photos.before?'<img src="'+x.photos.before+'" alt="Before" style="width:100%;height:130px;object-fit:cover;border-radius:8px">':'<div class="empty">Foto Before belum ada</div>')+(x.photos.after?'<img src="'+x.photos.after+'" alt="After" style="width:100%;height:130px;object-fit:cover;border-radius:8px">':'<div class="empty">Foto After belum ada</div>')+'</div></div>').join(''):'<div class="empty">Belum ada dokumentasi pada tanggal ini.</div>';
 $('manageList').innerHTML=schedule.map(x=>'<h3>'+x.day+'</h3>'+x.names.map(n=>'<div class="person" style="margin:6px 0"><b>'+esc(n)+'</b><button class="btn danger" onclick="removeMember(\''+escq(x.day)+'\',\''+escq(n)+'\')">Hapus</button></div>').join('')).join('');
@@ -84,7 +85,7 @@ $('manageList').innerHTML=schedule.map(x=>'<h3>'+x.day+'</h3>'+x.names.map(n=>'<
 function setStatus(name,s){draft[name]=s;let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members(dayOf(d)).map(n=>personHTML(n,dayOf(d),d,true)).join('')}
 function markAll(s){members(dayOf($('attDate').value||isoNow())).forEach(n=>draft[n]=s);setStatusRefresh()}
 function setStatusRefresh(){let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members(dayOf(d)).map(n=>personHTML(n,dayOf(d),d,true)).join('')}
-function saveAttendance(){let d=$('attDate').value||isoNow(),list=members(dayOf(d));if(!list.length){alert('Tidak ada jadwal piket pada tanggal tersebut.');return}records[d]={...(records[d]||{})};list.forEach(n=>records[d][n]=draft[n]||'belum');let selected=$('photoMember').value;if(selected&&(photoDraft.before||photoDraft.after)){photoRecords[d+'|'+selected]={...(photoRecords[d+'|'+selected]||{}),...photoDraft,updatedAt:new Date().toISOString()}}persist();alert('Absensi tersimpan di perangkat ini. Untuk kirim WhatsApp otomatis dan sinkronisasi online, aktifkan konfigurasi Firebase + Cloud API.');render()}
+function saveAttendance(){let d=$('attDate').value||isoNow(),list=members(dayOf(d));if(!list.length){alert('Tidak ada jadwal piket pada tanggal tersebut.');return}records[d]={...(records[d]||{})};list.forEach(n=>records[d][n]=draft[n]||'belum');let selected=$('photoMember').value;if(selected&&(photoDraft.before||photoDraft.after)){photoRecords[d+'|'+selected]={...(photoRecords[d+'|'+selected]||{}),...photoDraft,updatedAt:new Date().toISOString()}}persist();alert('Absensi tersimpan di perangkat ini.');render()}
 $('attDate').value=isoNow();$('attDate').addEventListener('change',()=>{photoDraft={before:'',after:''};$('photoBefore').value='';$('photoAfter').value='';$('beforePreview').classList.add('hidden');$('afterPreview').classList.add('hidden');render()});
 function readPhoto(file,callback){if(!file)return;let reader=new FileReader();reader.onload=()=>{let img=new Image();img.onload=()=>{let c=document.createElement('canvas'),scale=Math.min(1,1200/Math.max(img.width,img.height));c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);callback(c.toDataURL('image/jpeg',.68))};img.src=reader.result};reader.readAsDataURL(file)}
 $('photoBefore').addEventListener('change',e=>readPhoto(e.target.files[0],v=>{photoDraft.before=v;$('beforePreview').src=v;$('beforePreview').classList.remove('hidden')}));
