@@ -198,7 +198,7 @@ $('adminDate').addEventListener('change',render);
 $('addForm').addEventListener('submit',async e=>{e.preventDefault();let name=$('newName').value.trim(),className=$('newClass').value.trim();if(!name||!className)return;if(members.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert('Nama sudah terdaftar.');return}members.push({name,className});try{await persist();$('newName').value='';$('newClass').value='';render()}catch(error){alert('Gagal menyimpan anggota: '+error.message)}});
 async function removeMember(name){if(!confirm('Hapus '+name+' dari daftar anggota?'))return;members=members.filter(p=>p.name!==name);try{await persist();render()}catch(error){alert('Gagal menghapus anggota: '+error.message)}}
 function exportCSV(){let lines=[['Tanggal Kehadiran','Waktu Dicatat','Nama','Kelas','Hari','Status','Alasan Izin']];Object.keys(records).sort().forEach(d=>Object.entries(records[d]).forEach(([n,s])=>{let p=members.find(x=>x.name===n);lines.push([formatDate(d),formatRecordedAt(attendanceMeta[d+'|'+n]),n,p?.className||'',dayOf(d),statusLabel(s),reasons[d+'|'+n]||''])}));if(lines.length===1){alert('Belum ada riwayat absensi.');return}let csv=lines.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='rekap-absensi-lodaya19.csv';a.click();URL.revokeObjectURL(a.href)}
-document.querySelector('main').classList.add('app-locked');
+document.body.classList.add('app-locked');
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginError').textContent='';$('loginBtn').disabled=true;$('loginBtn').textContent='Memeriksa...';try{await auth.signInWithEmailAndPassword($('loginEmail').value.trim(),$('loginPassword').value)}catch(error){$('loginError').textContent='Login gagal. Periksa email dan password.';$('loginBtn').disabled=false;$('loginBtn').textContent='Masuk'}});
 $('logoutBtn').addEventListener('click',()=>auth.signOut());
 auth.onAuthStateChanged(async user=>{
@@ -213,7 +213,7 @@ auth.onAuthStateChanged(async user=>{
   records={};reasons={};attendanceMeta={};
   const attendanceSnap=await db.collection('attendance').get();
   attendanceSnap.forEach(doc=>{const data=doc.data()||{};records[doc.id]=data.records||{};Object.entries(data.reasons||{}).forEach(([n,v])=>reasons[doc.id+'|'+n]=v);Object.entries(data.meta||{}).forEach(([n,v])=>attendanceMeta[doc.id+'|'+n]=v)});
-  $('loginGate').classList.add('hidden');document.querySelector('main').classList.remove('app-locked');$('logoutBtn').style.display='inline-block';$('adminDate').value=isoNow();render();generateReport();
+  $('loginGate').classList.add('hidden');document.body.classList.remove('app-locked');$('logoutBtn').style.display='inline-block';$('adminDate').value=isoNow();render();generateReport();
  }catch(error){console.error(error);$('loginError').textContent='Gagal memuat data Firebase: '+error.message;await auth.signOut()}
 });
 </script></body></html>
