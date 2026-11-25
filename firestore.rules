@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    match /attendance/{recordId} {
+      // Anggota terautentikasi hanya boleh membuat absensi atas nama akunnya sendiri.
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.memberName is string
+        && request.resource.data.date is string
+        && request.resource.data.status in ['hadir', 'izin', 'alpa']
+        && request.resource.data.beforePhotoUrl is string
+        && request.resource.data.afterPhotoUrl is string;
+      // Riwayat lengkap dan perubahan data hanya untuk admin.
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
