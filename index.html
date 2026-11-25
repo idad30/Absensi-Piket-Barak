@@ -109,7 +109,6 @@ $('totalSakit').textContent=todayValues.filter(x=>x==='sakit').length;
 $('totalIzin').textContent=todayValues.filter(x=>x==='izin').length;
 $('totalAlpa').textContent=todayValues.filter(x=>x==='alpa').length;
 $('dayName').value=dayOf(date);
-$('photoMember').innerHTML=members.map(p=>'<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>').join('');
 $('attendanceCount').textContent=members.length+' anggota T2';
 draft={...(records[date]||{})};draftReasons={};
 $('attendanceRoster').innerHTML=members.map(p=>personHTML(p,date,true)).join('');
