@@ -18,11 +18,13 @@ main{max-width:1180px;margin:28px auto;padding:0 20px}.hero{padding:28px;border:
 .actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{font-size:12px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:#17243a;color:var(--text);cursor:pointer}.actions button.selected{border-color:var(--blue);background:#1d4779}.card{margin-top:14px}.empty{text-align:center;padding:30px;color:var(--muted)}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:540px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted);font-weight:650}.hidden{display:none!important}.footer{text-align:center;color:#71839d;padding:35px 10px;font-size:12px}
 label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.formgroup{min-width:150px;flex:1}.danger{background:#3b1c26!important;border-color:#75313e!important}
 @media(max-width:720px){header{align-items:flex-start;flex-direction:column}nav{width:100%}nav button{flex:1;padding:9px 7px;font-size:12px}.stats{grid-template-columns:repeat(2,1fr)}.roster{grid-template-columns:1fr}.hero{padding:22px}.section-head{align-items:flex-start;flex-direction:column}.toolbar{width:100%}.toolbar>*{flex:1}}
+body.app-locked .page,body.app-locked nav,body.app-locked #logoutBtn{display:none!important}#loginGate{max-width:460px;margin:55px auto}.login-note{font-size:12px;color:var(--muted);line-height:1.5}.login-error{color:#ff8c96;font-size:13px;min-height:18px}@media(max-width:720px){#loginGate{margin:25px auto}}
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA ANGKATAN 19</b><small>Sistem Absensi Kehadiran</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="report">Laporan</button><button data-page="settings">Pengaturan</button></nav></header>
-<main>
+<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA ANGKATAN 19</b><small>Sistem Absensi Kehadiran</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="report">Laporan</button><button data-page="settings">Pengaturan</button></nav><button id="logoutBtn" class="btn danger" type="button">Keluar</button></header>
+<main class="app-locked">
+<section id="loginGate" class="card"><div class="eyebrow">AKSES ADMIN</div><h2 style="margin:8px 0 6px">Login Absensi Lodaya 19</h2><p class="muted" style="font-size:13px">Masuk menggunakan akun admin Firebase yang sudah didaftarkan.</p><form id="loginForm"><div style="margin:16px 0"><label>Email admin</label><input class="field" id="loginEmail" type="email" autocomplete="username" placeholder="Email admin" required style="width:100%"></div><div style="margin:16px 0"><label>Password</label><input class="field" id="loginPassword" type="password" autocomplete="current-password" placeholder="Password" required style="width:100%"></div><button class="btn primary" id="loginBtn" type="submit" style="width:100%">Masuk</button><p id="loginError" class="login-error" role="alert"></p></form><p class="login-note">Akses website dibatasi untuk akun yang terdaftar sebagai admin. Jangan bagikan password kepada orang lain.</p></section>
 <section id="dashboard" class="page">
 <div class="hero"><div class="eyebrow">MB LODAYA 19 • SISTEM KEDISIPLINAN</div><h1>Absensi Kehadiran Lodaya Angkatan 19</h1><p>Sistem pencatatan kehadiran anggota dengan tanggal dan waktu pencatatan otomatis.</p></div>
 <div class="stats"><div class="stat"><small><span class="dot"></span>Total Anggota T2 + T3 + T3</small><strong id="totalMembers">29</strong></div><div class="stat"><small>Hadir hari ini</small><strong id="totalHadir">0</strong></div><div class="stat"><small>Sakit hari ini</small><strong id="totalSakit">0</strong></div><div class="stat"><small>Izin hari ini</small><strong id="totalIzin">0</strong></div><div class="stat"><small>Tanpa keterangan</small><strong id="totalAlpa">0</strong></div></div>
@@ -47,13 +49,15 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 
 </section>
 </main><div class="footer">© 2026 MB LODAYA ANGKATAN 19 • SISTEM ABSENSI KEHADIRAN</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-// Reset satu kali pada setiap perangkat saat versi reset ini pertama kali dibuka.
-const LODAYA_RESET_VERSION='2026-11-25-reset-1';
-if(localStorage.getItem('lodayaResetVersion')!==LODAYA_RESET_VERSION){
-['lodayaMembersT2','lodayaRecords','lodayaAttendanceMeta','lodayaReasons','lodayaPhotos'].forEach(key=>localStorage.removeItem(key));
-localStorage.setItem('lodayaResetVersion',LODAYA_RESET_VERSION);
-}
+const firebaseConfig={apiKey:"AIzaSyB4Rw29rnVNzRkz62LRqJ8U5h8auWvgneU",authDomain:"absensi-lodaya19.firebaseapp.com",projectId:"absensi-lodaya19",storageBucket:"absensi-lodaya19.firebasestorage.app",messagingSenderId:"441833227010",appId:"1:441833227010:web:74a8c7d62eb54e81c1f81b",measurementId:"G-6PLTTEJHN9"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+// Firestore menjadi penyimpanan utama.
 const initialMembers=[
 {name:'Adnan Fajri Maulana',className:'XI NKPI 1'},
 {name:'Agis Firmansyah',className:'XI NKPI 1'},
@@ -104,19 +108,21 @@ const initialMembersT3=[
 {name:"Nipa Ramadhani",className:"XII APAPL"},
 {name:"Ahnaf Suhaemin",className:"XII TP 1"}
 ];
-let members=JSON.parse(localStorage.getItem('lodayaMembersT2')||'null')||initialMembers;
-const existingMemberNames=new Set(members.map(p=>p.name.toLowerCase()));
-initialMembersT3.forEach(p=>{if(!existingMemberNames.has(p.name.toLowerCase()))members.push(p)});
-let records=JSON.parse(localStorage.getItem('lodayaRecords')||'{}');
-let attendanceMeta=JSON.parse(localStorage.getItem('lodayaAttendanceMeta')||'{}');
+let members=[...initialMembers,...initialMembersT3];
+let records={};
+let attendanceMeta={};
 let draft={};
-
-let reasons=JSON.parse(localStorage.getItem('lodayaReasons')||'{}');
+let reasons={};
 let draftReasons={};
 
 const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const $=id=>document.getElementById(id);
-function persist(){localStorage.setItem('lodayaMembersT2',JSON.stringify(members));localStorage.setItem('lodayaRecords',JSON.stringify(records));localStorage.setItem('lodayaReasons',JSON.stringify(reasons));localStorage.setItem('lodayaAttendanceMeta',JSON.stringify(attendanceMeta))}
+async function persist(){
+ if(!auth.currentUser) throw new Error('Belum login.');
+ await db.collection('members').doc('roster').set({items:members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+ const jobs=Object.keys(records).map(date=>{const dateReasons={},dateMeta={};members.forEach(p=>{const k=date+'|'+p.name;if(reasons[k])dateReasons[p.name]=reasons[k];if(attendanceMeta[k])dateMeta[p.name]=attendanceMeta[k]});return db.collection('attendance').doc(date).set({records:records[date]||{},reasons:dateReasons,meta:dateMeta,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
+ await Promise.all(jobs);
+}
 function formatDate(date){return new Date(date+'T12:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'Asia/Jakarta'})}
 function formatRecordedAt(value){if(!value)return '-';return new Date(value).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Jakarta'})+' WIB'}
 function isoNow(){let d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
@@ -175,23 +181,39 @@ $('manageList').innerHTML=members.map(p=>'<div class="person" style="margin:6px 
 function setStatus(name,s){draft[name]=s;if(s!=='izin')draftReasons[name]='';let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members.map(p=>personHTML(p,d,true)).join('')}
 function setReason(name,value){draftReasons[name]=value}
 function markAll(s){members.forEach(p=>draft[p.name]=s);let d=$('attDate').value||isoNow();$('attendanceRoster').innerHTML=members.map(p=>personHTML(p,d,true)).join('')}
-function saveAttendance(){
+async function saveAttendance(){
 let d=$('attDate').value||isoNow();
 if(!members.length){alert('Belum ada anggota terdaftar.');return}
 for(const p of members){if((draft[p.name]||'belum')==='izin'&&!(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim()){alert('Alasan izin untuk '+p.name+' wajib diisi.');return}}
 records[d]={...(records[d]||{})};
 members.forEach(p=>{let status=draft[p.name]||'belum';if(status==='izin'){let reason=(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim();if(reason)reasons[d+'|'+p.name]=reason}else delete reasons[d+'|'+p.name];records[d][p.name]=status;attendanceMeta[d+'|'+p.name]=new Date().toISOString()});
 
-persist();alert('Absensi seluruh anggota T2 berhasil disimpan pada perangkat ini.');render();
+try{await persist();alert('Absensi berhasil disimpan ke Firebase.');render()}catch(error){console.error(error);alert('Gagal menyimpan ke Firebase: '+error.message)}
 }
 $('attDate').value=isoNow();$('reportDate').value=isoNow();$('reportDate').addEventListener('change',generateReport);
 $('attDate').addEventListener('change',render);
 function readPhoto(file,callback){if(!file)return;let reader=new FileReader();reader.onload=()=>{let img=new Image();img.onload=()=>{let c=document.createElement('canvas'),scale=Math.min(1,1200/Math.max(img.width,img.height));c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);callback(c.toDataURL('image/jpeg',.68))};img.src=reader.result};reader.readAsDataURL(file)}
 
 $('adminDate').addEventListener('change',render);
-$('addForm').addEventListener('submit',e=>{e.preventDefault();let name=$('newName').value.trim(),className=$('newClass').value.trim();if(!name||!className)return;if(members.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert('Nama sudah terdaftar.');return}members.push({name,className});persist();$('newName').value='';$('newClass').value='';render()});
-function removeMember(name){if(!confirm('Hapus '+name+' dari daftar anggota?'))return;members=members.filter(p=>p.name!==name);persist();render()}
+$('addForm').addEventListener('submit',async e=>{e.preventDefault();let name=$('newName').value.trim(),className=$('newClass').value.trim();if(!name||!className)return;if(members.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert('Nama sudah terdaftar.');return}members.push({name,className});try{await persist();$('newName').value='';$('newClass').value='';render()}catch(error){alert('Gagal menyimpan anggota: '+error.message)}});
+async function removeMember(name){if(!confirm('Hapus '+name+' dari daftar anggota?'))return;members=members.filter(p=>p.name!==name);try{await persist();render()}catch(error){alert('Gagal menghapus anggota: '+error.message)}}
 function exportCSV(){let lines=[['Tanggal Kehadiran','Waktu Dicatat','Nama','Kelas','Hari','Status','Alasan Izin']];Object.keys(records).sort().forEach(d=>Object.entries(records[d]).forEach(([n,s])=>{let p=members.find(x=>x.name===n);lines.push([formatDate(d),formatRecordedAt(attendanceMeta[d+'|'+n]),n,p?.className||'',dayOf(d),statusLabel(s),reasons[d+'|'+n]||''])}));if(lines.length===1){alert('Belum ada riwayat absensi.');return}let csv=lines.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='rekap-absensi-lodaya19.csv';a.click();URL.revokeObjectURL(a.href)}
-render();
-generateReport();
+document.querySelector('main').classList.add('app-locked');
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginError').textContent='';$('loginBtn').disabled=true;$('loginBtn').textContent='Memeriksa...';try{await auth.signInWithEmailAndPassword($('loginEmail').value.trim(),$('loginPassword').value)}catch(error){$('loginError').textContent='Login gagal. Periksa email dan password.';$('loginBtn').disabled=false;$('loginBtn').textContent='Masuk'}});
+$('logoutBtn').addEventListener('click',()=>auth.signOut());
+auth.onAuthStateChanged(async user=>{
+ document.querySelector('main').classList.add('app-locked');
+ if(!user){$('loginGate').classList.remove('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Masuk';return}
+ try{
+  const adminSnap=await db.collection('admin').doc(user.uid).get();
+  if(!adminSnap.exists||adminSnap.data().role!=='admin'){await auth.signOut();$('loginError').textContent='Akun ini tidak memiliki akses admin.';return}
+  const rosterSnap=await db.collection('members').doc('roster').get();
+  if(rosterSnap.exists&&Array.isArray(rosterSnap.data().items))members=rosterSnap.data().items;
+  else{members=[...initialMembers,...initialMembersT3];await db.collection('members').doc('roster').set({items:members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}
+  records={};reasons={};attendanceMeta={};
+  const attendanceSnap=await db.collection('attendance').get();
+  attendanceSnap.forEach(doc=>{const data=doc.data()||{};records[doc.id]=data.records||{};Object.entries(data.reasons||{}).forEach(([n,v])=>reasons[doc.id+'|'+n]=v);Object.entries(data.meta||{}).forEach(([n,v])=>attendanceMeta[doc.id+'|'+n]=v)});
+  $('loginGate').classList.add('hidden');document.querySelector('main').classList.remove('app-locked');$('logoutBtn').style.display='inline-block';$('adminDate').value=isoNow();render();generateReport();
+ }catch(error){console.error(error);$('loginError').textContent='Gagal memuat data Firebase: '+error.message;await auth.signOut()}
+});
 </script></body></html>
