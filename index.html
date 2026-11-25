@@ -127,7 +127,7 @@ function escq(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function generateReport(){
 const d=$('reportDate').value||isoNow();
 const dateText=new Date(d+'T12:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const list=members.map(p=>({name:p.name,className:p.className,status:records[d]?.[p.name]||'belum',reason:reasons[d+'|'+p.name]||''}));
+const list=members.map(p=>({name:p.name,className:p.className,status:records[d]?.[p.name]||'alpa',reason:reasons[d+'|'+p.name]||''}));
 const tingkat2=list.filter(x=>x.className.startsWith('XI '));
 const tingkat3=list.filter(x=>x.className.startsWith('XII '));
 const hadir2=tingkat2.filter(x=>x.status==='hadir');
