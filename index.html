@@ -21,7 +21,7 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA ANGKATAN 19</b><small>Sistem Absensi Kehadiran</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="history">Riwayat</button><button data-page="report">Laporan</button><button data-page="settings">Pengaturan</button></nav></header>
+<header><div class="brand"><div class="logo">L19</div><div><b>LODАYA ANGKATAN 19</b><small>Sistem Absensi Kehadiran</small></div></div><nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="attendance">Absensi</button><button data-page="report">Laporan</button><button data-page="settings">Pengaturan</button></nav></header>
 <main>
 <section id="dashboard" class="page">
 <div class="hero"><div class="eyebrow">MB LODAYA 19 • SISTEM KEDISIPLINAN</div><h1>Absensi Kehadiran Lodaya Angkatan 19</h1><p>Sistem pencatatan kehadiran anggota dengan tanggal dan waktu pencatatan otomatis.</p></div>
@@ -35,7 +35,6 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 <div class="formrow" style="margin-top:12px"><div class="formgroup"><label>Foto dokumentasi (cukup 1 foto)</label><input class="field" type="file" id="attendancePhoto" accept="image/*" capture="environment"><img id="photoPreview" class="hidden" style="width:100%;max-width:420px;max-height:240px;object-fit:cover;border-radius:12px;margin-top:8px"></div></div><p class="muted" style="font-size:12px">Foto akan disimpan pada perangkat ini di versi demo. Penyimpanan online lintas perangkat memerlukan Firebase Storage.</p></div>
 <div style="display:flex;justify-content:flex-end;margin-top:17px"><button class="btn primary" onclick="saveAttendance()">Simpan Absensi</button></div></div>
 </section>
-<section id="history" class="page hidden"><div class="section-head"><div><h2>Riwayat Absensi</h2><button class="btn" onclick="exportCSV()">Unduh CSV</button></div></div><div class="card"><div class="table-wrap"><table><thead><tr><th>Tanggal Kehadiran</th><th>Waktu Dicatat</th><th>Nama</th><th>Hari</th><th>Status</th><th>Alasan Izin</th></tr></thead><tbody id="historyRows"></tbody></table></div><div id="historyEmpty" class="empty hidden">Belum ada data absensi tersimpan.</div></div></section>
 <section id="report" class="page hidden">
 <div class="section-head"><div><h2>Generator Laporan Absensi</h2><div class="muted">Susun laporan siap kirim berdasarkan data absensi pada tanggal yang dipilih.</div></div></div>
 <div class="card"><div class="formrow"><div class="formgroup"><label>Tanggal laporan</label><input class="field" type="date" id="reportDate"></div><button class="btn" onclick="generateReport()">Perbarui Laporan</button><button class="btn primary" onclick="copyReport()">Salin Laporan</button></div>
@@ -134,10 +133,6 @@ $('dayName').value=dayOf(date);
 $('attendanceCount').textContent=members.length+' anggota T2';
 draft={...(records[date]||{})};draftReasons={};
 $('attendanceRoster').innerHTML=members.map(p=>personHTML(p,date,true)).join('');
-let rows=[];
-Object.keys(records).sort().reverse().forEach(d=>Object.entries(records[d]).forEach(([n,s])=>rows.push([d,n,dayOf(d),s,attendanceMeta[d+'|'+n]||'',reasons[d+'|'+n]||''])));
-$('historyRows').innerHTML=rows.map(r=>'<tr><td>'+formatDate(r[0])+'</td><td>'+formatRecordedAt(r[4])+'</td><td>'+esc(r[1])+'</td><td>'+r[2]+'</td><td><span class="status '+r[3]+'">'+statusLabel(r[3])+'</span></td></tr>').join('');
-$('historyEmpty').classList.toggle('hidden',rows.length>0);
 let reports=[];
 Object.keys(records).sort().reverse().forEach(d=>Object.entries(records[d]).forEach(([n,s])=>reports.push({date:d,name:n,status:s,photo:photoRecords[d]||''})));
 $('adminTotal').textContent=reports.length;
