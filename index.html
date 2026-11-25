@@ -134,7 +134,8 @@ let d=$('attDate').value||isoNow();
 if(!members.length){alert('Belum ada anggota terdaftar.');return}
 for(const p of members){if((draft[p.name]||'belum')==='izin'&&!(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim()){alert('Alasan izin untuk '+p.name+' wajib diisi.');return}}
 records[d]={...(records[d]||{})};
-members.forEach(p=>{let status=draft[p.name]||'belum';if(status==='izin'){let reason=(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim();if(reason)reasons[d+'|'+p.name]=reason}else delete reasons[d+'|'+p.name];records[d][p.name]=status;attendanceMeta[d+'|'+p.name]=new Date().toISOString()});\nif(photoDraft)photoRecords[d]=photoDraft;
+members.forEach(p=>{let status=draft[p.name]||'belum';if(status==='izin'){let reason=(draftReasons[p.name]??reasons[d+'|'+p.name]??'').trim();if(reason)reasons[d+'|'+p.name]=reason}else delete reasons[d+'|'+p.name];records[d][p.name]=status;attendanceMeta[d+'|'+p.name]=new Date().toISOString()});
+if(photoDraft)photoRecords[d]=photoDraft;
 persist();alert('Absensi seluruh anggota T2 berhasil disimpan pada perangkat ini.');render();
 }
 $('attDate').value=isoNow();
