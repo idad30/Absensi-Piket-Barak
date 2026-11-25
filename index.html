@@ -50,6 +50,12 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.formrow
 </section>
 </main><div class="footer">© 2026 MB LODAYA ANGKATAN 19 • SISTEM ABSENSI KEHADIRAN</div>
 <script>
+// Reset satu kali pada setiap perangkat saat versi reset ini pertama kali dibuka.
+const LODAYA_RESET_VERSION='2026-11-25-reset-1';
+if(localStorage.getItem('lodayaResetVersion')!==LODAYA_RESET_VERSION){
+['lodayaMembersT2','lodayaRecords','lodayaAttendanceMeta','lodayaReasons','lodayaPhotos'].forEach(key=>localStorage.removeItem(key));
+localStorage.setItem('lodayaResetVersion',LODAYA_RESET_VERSION);
+}
 const initialMembers=[
 {name:'Adnan Fajri Maulana',className:'XI NKPI 1'},
 {name:'Agis Firmansyah',className:'XI NKPI 1'},
